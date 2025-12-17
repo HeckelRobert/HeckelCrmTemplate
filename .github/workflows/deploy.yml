@@ -1,0 +1,128 @@
+name: Deploy to Debian Server
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker images
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src
+        file: ./src/HeckelCrm.Api/Dockerfile
+        push: false
+        load: true
+        tags: heckel-crm-api:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Build Docker image for Web
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src
+        file: ./src/HeckelCrm.Web/Dockerfile
+        push: false
+        load: true
+        tags: heckel-crm-web:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        
+    - name: Save Docker images
+      run: |
+        mkdir -p deploy
+        docker save heckel-crm-api:latest -o deploy/heckel-crm-api.tar
+        docker save heckel-crm-web:latest -o deploy/heckel-crm-web.tar
+        cp docker-compose.yml deploy/
+        tar -czf deploy.tar.gz -C deploy .
+        
+    - name: Copy files to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USER }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
+        port: ${{ secrets.DEPLOY_PORT || 22 }}
+        source: "deploy.tar.gz"
+        target: "${{ secrets.DEPLOYMENT_DIRECTORY || '/opt/heckel-crm' }}"
+        strip_components: 0
+        
+    - name: Deploy on server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USER }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        passphrase: ${{ secrets.DEPLOY_SSH_PASSPHRASE }}
+        port: ${{ secrets.DEPLOY_PORT || 22 }}
+        script: |
+          DEPLOY_DIR="${{ secrets.DEPLOYMENT_DIRECTORY || '/opt/heckel-crm' }}"
+          cd $DEPLOY_DIR
+          
+          # Check if docker compose is available (V2) or docker-compose (V1)
+          if command -v docker &> /dev/null && docker compose version &> /dev/null; then
+            DOCKER_COMPOSE="docker compose"
+          elif command -v docker-compose &> /dev/null; then
+            DOCKER_COMPOSE="docker-compose"
+          else
+            echo "Error: Docker Compose not found. Please install Docker Compose."
+            exit 1
+          fi
+          
+          # Extract deployment package
+          tar -xzf deploy.tar.gz
+          rm deploy.tar.gz
+          
+          # Load Docker images
+          docker load -i deploy/heckel-crm-api.tar
+          docker load -i deploy/heckel-crm-web.tar
+          rm -f deploy/heckel-crm-api.tar deploy/heckel-crm-web.tar
+          
+          # Tag images for docker-compose
+          docker tag heckel-crm-api:latest heckel-crm-api:latest || true
+          docker tag heckel-crm-web:latest heckel-crm-web:latest || true
+          
+          # Stop existing containers
+          $DOCKER_COMPOSE down || true
+          
+          # Set environment variables from GitHub Secrets
+          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          export DB_NAME="${{ secrets.DB_NAME || 'HeckelCrm' }}"
+          export AZURE_AD_CLIENT_ID="${{ secrets.AZURE_AD_CLIENT_ID }}"
+          export AZURE_AD_TENANT_ID="${{ secrets.AZURE_AD_TENANT_ID }}"
+          export AZURE_AD_CLIENT_SECRET="${{ secrets.AZURE_AD_CLIENT_SECRET }}"
+          export AZURE_AD_INSTANCE="${{ secrets.AZURE_AD_INSTANCE || 'https://login.microsoftonline.com/' }}"
+          export LEXOFFICE_BASE_URL="${{ secrets.LEXOFFICE_BASE_URL || 'https://api.lexware.io/v1' }}"              
+          
+          # Start containers with environment variables (use pre-built images, don't rebuild)
+          $DOCKER_COMPOSE up -d --no-build
+          
+          # Wait for services to be healthy and migrations to run automatically
+          # The API container automatically runs migrations on startup (see Program.cs)
+          echo "Waiting for services to start and migrations to complete..."
+          sleep 30
+          
+          # Wait for API to be ready
+          echo "Waiting for API to be ready..."
+          sleep 10
+          
+          # Clean up old images
+          docker image prune -f
+          
+          # Show status
+          $DOCKER_COMPOSE ps

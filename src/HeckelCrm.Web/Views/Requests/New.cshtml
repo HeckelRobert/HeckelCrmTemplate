@@ -1,0 +1,185 @@
+@model CreateContactDto
+@{
+    ViewData["Title"] = "Neue Angebotsanfrage";
+    var partnerId = ViewBag.PartnerId as string ?? Model?.PartnerId;
+    var partnerName = ViewBag.PartnerName as string;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> Neue Angebotsanfrage
+                    </h2>
+                    @if (!string.IsNullOrEmpty(partnerName))
+                    {
+                        <small>Partner: @partnerName</small>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    <form asp-action="Register" asp-controller="Requests" asp-route-partnerId="@partnerId" method="post" id="requestForm">
+                        @Html.AntiForgeryToken()
+                        
+                        @if (!string.IsNullOrEmpty(partnerId))
+                        {
+                            <input type="hidden" name="PartnerId" id="PartnerId" value="@partnerId" />
+                        }
+
+                        <!-- Persönliche Daten -->
+                        <div class="mb-4">
+                            <h4 class="mb-3"><i class="bi bi-person"></i> Persönliche Daten</h4>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="Salutation" class="form-label">Anrede</label>
+                                    <select asp-for="Salutation" class="form-select">
+                                        <option value="">Keine Anrede</option>
+                                        <option value="Herr">Herr</option>
+                                        <option value="Frau">Frau</option>
+                                        <option value="Divers">Divers</option>
+                                    </select>
+                                    <span asp-validation-for="Salutation" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="FirstName" class="form-label">Vorname *</label>
+                                    <input asp-for="FirstName" class="form-control" required />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="LastName" class="form-label">Nachname *</label>
+                                    <input asp-for="LastName" class="form-control" required />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Email" class="form-label">E-Mail *</label>
+                                    <input type="email" asp-for="Email" class="form-control" required />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Phone" class="form-label">Telefon *</label>
+                                    <input type="tel" asp-for="Phone" class="form-control" required />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="CompanyName" class="form-label">Firmenname (optional)</label>
+                                    <input asp-for="CompanyName" class="form-control" />
+                                    <small class="form-text text-muted">Bitte angeben, falls Sie als Firma anfragen.</small>
+                                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Adresse -->
+                        <div class="mb-4">
+                            <h4 class="mb-3"><i class="bi bi-house"></i> Adresse</h4>
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label asp-for="BillingStreet" class="form-label">Straße und Hausnummer *</label>
+                                    <input asp-for="BillingStreet" class="form-control" required />
+                                    <span asp-validation-for="BillingStreet" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="BillingZip" class="form-label">PLZ *</label>
+                                    <input asp-for="BillingZip" class="form-control" required />
+                                    <span asp-validation-for="BillingZip" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="BillingCity" class="form-label">Stadt *</label>
+                                    <input asp-for="BillingCity" class="form-control" required />
+                                    <span asp-validation-for="BillingCity" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="BillingCountryCode" class="form-label">Land *</label>
+                                    <select asp-for="BillingCountryCode" class="form-select" required>
+                                        <option value="">Bitte wählen</option>
+                                        <option value="DE" selected>Deutschland</option>
+                                        <option value="AT">Österreich</option>
+                                        <option value="CH">Schweiz</option>
+                                    </select>
+                                    <span asp-validation-for="BillingCountryCode" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="BillingSupplement" class="form-label">Adresszusatz (optional)</label>
+                                <input asp-for="BillingSupplement" class="form-control" />
+                                <span asp-validation-for="BillingSupplement" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Anforderungen -->
+                        <div class="mb-4">
+                            <h4 class="mb-3"><i class="bi bi-chat-text"></i> Ihre Anforderungen</h4>
+                            <div class="mb-3">
+                                <label asp-for="Requirements" class="form-label">Beschreiben Sie bitte Ihre Anforderungen (optional)</label>
+                                <textarea asp-for="Requirements" class="form-control" rows="5" placeholder="Bitte beschreiben Sie hier Ihre Anforderungen, Wünsche oder Fragen zu Ihrem gewünschten Angebot..."></textarea>
+                                <small class="form-text text-muted">Je detaillierter Sie Ihre Anforderungen beschreiben, desto besser können wir Ihnen ein passendes Angebot erstellen.</small>
+                                <span asp-validation-for="Requirements" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Datenschutz & AGB -->
+                        <div class="mb-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi bi-shield-check"></i> Datenschutz & AGB
+                                    </h5>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" asp-for="PrivacyPolicyAccepted" id="privacyCheck" required />
+                                        <label class="form-check-label" for="privacyCheck">
+                                            Ich akzeptiere die <a href="@ViewBag.PrivacyPolicyUrl" target="_blank">Datenschutzerklärung</a> *
+                                        </label>
+                                        <span asp-validation-for="PrivacyPolicyAccepted" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" asp-for="TermsAccepted" id="termsCheck" required />
+                                        <label class="form-check-label" for="termsCheck">
+                                            Ich akzeptiere die <a href="@ViewBag.TermsUrl" target="_blank">AGB</a> *
+                                        </label>
+                                        <span asp-validation-for="TermsAccepted" class="text-danger"></span>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" asp-for="DataProcessingAccepted" id="dataProcessingCheck" required />
+                                        <label class="form-check-label" for="dataProcessingCheck">
+                                            Ich akzeptiere den <a href="@ViewBag.DataProcessingUrl" target="_blank">Auftragsverarbeitungsvertrag (AVV)</a> * 
+                                            <i class="bi bi-box-arrow-up-right" style="font-size: 0.75em;"></i>
+                                        </label>
+                                        <span asp-validation-for="DataProcessingAccepted" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Anfrage absenden
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

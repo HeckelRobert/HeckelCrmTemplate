@@ -1,0 +1,132 @@
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Dashboard";
+    var apiBaseUrl = Configuration["Api:BaseUrl"] ?? "https://localhost:5001";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 col-lg-3 mb-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Kontakte</h6>
+                        <h3 class="card-title mb-0">@((int?)ViewBag.ContactsCount ?? 0)</h3>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 mt-auto">
+                <a asp-controller="ContactsUi" asp-action="Index" class="text-white text-decoration-none">
+                    Alle Kontakte anzeigen <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-3 mb-3">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Anfragen</h6>
+                        <h3 class="card-title mb-0">@((int?)ViewBag.QuoteRequestsCount ?? 0)</h3>
+                    </div>
+                    <i class="bi bi-chat-text fs-1 opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 mt-auto">
+                <a asp-controller="QuoteRequestsUi" asp-action="Index" class="text-white text-decoration-none">
+                    Alle Anfragen anzeigen <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-3 mb-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
+                    <div class="flex-grow-1">
+                        <h6 class="card-subtitle mb-2">Angebote</h6>
+                        <h3 class="card-title mb-0">@((int?)ViewBag.OffersCount ?? 0)</h3>
+                        <div class="mt-2">
+                            <small class="opacity-75">
+                                <i class="bi bi-check-circle"></i> @((int?)ViewBag.AcceptedOffersCount ?? 0) akzeptiert
+                            </small>
+                            <br>
+                            <small class="opacity-75">
+                                <i class="bi bi-clock"></i> @((int?)ViewBag.PendingOffersCount ?? 0) ausstehend
+                            </small>
+                        </div>
+                    </div>
+                    <i class="bi bi-file-earmark-text fs-1 opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0 mt-auto">
+                <a asp-controller="OffersUi" asp-action="Index" class="text-white text-decoration-none">
+                    Alle Angebote anzeigen <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Sales Workflow</h5>
+            </div>
+            <div class="card-body">                
+                <ol class="mb-0">
+                    <li class="mb-2">
+                        <strong>Kostenfreies Erstgespräch</strong>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Der Kunde erhält einen persönlichen Link zu "Angebot anfordern":</strong><br>
+                        @{
+                            var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+                            var requestUrl = !string.IsNullOrEmpty(ViewBag.PartnerId as string)
+                                ? $"{baseUrl}/angebot-anfordern?partnerId={ViewBag.PartnerId}"
+                                : $"{baseUrl}/angebot-anfordern?partnerId=[deine-partner-id]";
+                        }
+                        @if (!string.IsNullOrEmpty(ViewBag.PartnerId as string))
+                        {
+                            <a href="@requestUrl" target="_blank" class="text-break">
+                                <code>@requestUrl</code>
+                            </a>
+                        }
+                        else
+                        {
+                            <code>@requestUrl</code>
+                        }                       
+                    </li>
+                     <li class="mb-2">
+                        <strong>Der Kunde füllt das Formular aus und fordert ein Angebot an.</strong> Er wird als Kontakt angelegt.
+                    </li>
+                    <li class="mb-2">
+                        <strong>Der Auftragsverarbeiter (Admin) erstellt ein Angebot über das CRM.</strong>
+                        <p>Es wird automatisch in Lexoffice erzeugt und der Angebotslink kann per E-Mail an den Kunden versendet werden.</p>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Der Kunde akzeptiert oder lehnt das Angebot ab.</strong>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Vertriebspartner können den Angebotsstatus Ihrer gewonnenen Kontakte im CRM sehen</strong> und wie vereinbart abrechnen.
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Counts are provided server-side via HomeController.Index *@
+

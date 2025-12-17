@@ -1,0 +1,359 @@
+@model OfferDto
+@using HeckelCrm.Core.DTOs
+@inject Microsoft.AspNetCore.Authorization.IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Angebotsdetails";
+    var isAdminResult = await AuthorizationService.AuthorizeAsync(User, null, "Admin");
+    var isAdmin = isAdminResult.Succeeded;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-file-earmark-text"></i> Angebotsdetails
+            </h1>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Angebotsinformationen</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    @if (isAdmin)
+                    {
+                        <dt class="col-sm-4">Titel:</dt>
+                        <dd class="col-sm-8"><strong>@Model.Title</strong></dd>
+
+                        <dt class="col-sm-4">Beschreibung:</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Description) ? "-" : Model.Description)</dd>
+                    }
+
+                    <dt class="col-sm-4">Angebotsnummer:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.LexofficeQuoteNumber))
+                        {
+                            <span class="badge bg-light text-dark border">@Model.LexofficeQuoteNumber</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Nicht verfügbar</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Status (Lexoffice):</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.LexofficeVoucherStatus))
+                        {
+                            @switch (Model.LexofficeVoucherStatus.ToLower())
+                            {
+                                case "draft":
+                                    <span class="badge bg-secondary fs-6">Entwurf</span>
+                                    break;
+                                case "open":
+                                    <span class="badge bg-primary fs-6">Offen</span>
+                                    break;
+                                case "sent":
+                                    <span class="badge bg-info fs-6">Gesendet</span>
+                                    break;
+                                case "viewed":
+                                    <span class="badge bg-warning text-dark fs-6">Angesehen</span>
+                                    break;
+                                case "accepted":
+                                    <span class="badge bg-success fs-6">Angenommen</span>
+                                    break;
+                                case "declined":
+                                    <span class="badge bg-danger fs-6">Abgelehnt</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary fs-6">@Model.LexofficeVoucherStatus</span>
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            @switch (Model.Status)
+                            {
+                                case "Created":
+                                    <span class="badge bg-primary fs-6">Erstellt</span>
+                                    break;
+                                case "Rejected":
+                                    <span class="badge bg-danger fs-6">Abgelehnt</span>
+                                    break;
+                                case "InProgress":
+                                    <span class="badge bg-warning text-dark fs-6">In Bearbeitung</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary fs-6">@Model.Status</span>
+                                    break;
+                            }
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Abrechnungsstatus:</dt>
+                    <dd class="col-sm-8">
+                        @switch (Model.BillingStatus)
+                        {
+                            case "New":
+                                <span class="badge bg-secondary fs-6">Neu</span>
+                                break;
+                            case "Billed":
+                                <span class="badge bg-warning text-dark fs-6">Abgerechnet</span>
+                                break;
+                            case "Paid":
+                                <span class="badge bg-success fs-6">Bezahlt</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary fs-6">@Model.BillingStatus</span>
+                                break;
+                        }
+                    </dd>
+
+                    @if (isAdmin)
+                    {
+                        <dt class="col-sm-4">Gültig bis:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.ValidUntil.HasValue)
+                            {
+                                <span>@Model.ValidUntil.Value.ToString("dd.MM.yyyy")</span>
+                                @if (Model.ValidUntil.Value < DateTime.UtcNow && Model.Status != "InProgress")
+                                {
+                                    <span class="badge bg-danger ms-2">Abgelaufen</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Nicht festgelegt</span>
+                            }
+                        </dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Kundeninformationen</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Kontakt:</dt>
+                    <dd class="col-sm-8">
+                        <a asp-controller="ContactsUi" asp-action="Details" asp-route-id="@Model.ContactId">
+                            <strong>@Model.ContactName</strong>
+                        </a><br>
+                        <a href="mailto:@Model.ContactEmail">@Model.ContactEmail</a>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> Angebotene Leistungen</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.LineItems != null && Model.LineItems.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Leistung</th>
+                                    <th>Beschreibung</th>
+                                    <th>Tage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.LineItems)
+                                {
+                                    <tr>
+                                        <td>@(item.Name ?? "-")</td>
+                                        <td>@(item.Description ?? "-")</td>
+                                        <td>
+                                            @if (item.Days > 0)
+                                            {
+                                                @item.Days
+                                            }
+                                            else
+                                            {
+                                                @item.Quantity
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Keine Leistungen aus Lexoffice verfügbar oder Angebot ist nicht mit Lexoffice verknüpft.</p>
+                }
+            </div>
+        </div>
+
+        @if (ViewBag.QuoteRequest != null)
+        {
+            var quoteRequest = ViewBag.QuoteRequest as QuoteRequestDto;
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Zugeordnete Anfragen</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a asp-controller="QuoteRequestsUi" asp-action="Details" asp-route-id="@Model.QuoteRequestId">
+                                <i class="bi bi-file-earmark-text"></i> 
+                                @if (!string.IsNullOrEmpty(quoteRequest?.Requirements))
+                                {
+                                    <span>@(quoteRequest.Requirements.Length > 50 ? quoteRequest.Requirements.Substring(0, 50) + "..." : quoteRequest.Requirements)</span>
+                                }
+                                else
+                                {
+                                    <span>Anfrage vom @Model.CreatedAt.ToString("dd.MM.yyyy")</span>
+                                }
+                            </a>
+                            <span class="badge bg-@(quoteRequest?.Status == "QuoteCreated" ? "success" : quoteRequest?.Status == "Rejected" ? "danger" : "primary")">
+                                @(quoteRequest?.Status == "QuoteCreated" ? "Angebot erstellt" : quoteRequest?.Status == "Rejected" ? "Abgelehnt" : "Neu")
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> Leistungsumfang</h5>
+            </div>
+            <div class="card-body text-center">
+                @if (Model.Days.HasValue)
+                {
+                    <h2 class="text-success">@Model.Days</h2>
+                    <p class="mb-0">Tage</p>
+                }
+                else if (Model.DaysUntilAcceptance.HasValue)
+                {
+                    <h2 class="text-info">@Model.DaysUntilAcceptance</h2>
+                    <p class="mb-0">Tage</p>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Nicht festgelegt</p>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-cash-coin"></i> Abrechnungsstatus</h5>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.BillingStatus))
+                {
+                    var currentStatus = Model.BillingStatus;
+                    <form asp-action="UpdateBillingStatus" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="billingStatus" class="form-label">Abrechnungsstatus ändern:</label>
+                                <select name="billingStatus" id="billingStatus" class="form-select" onchange="this.form.submit()">
+                                    <option value="New" selected="@(currentStatus == "New")">Neu</option>
+                                    @if (isAdmin)
+                                    {
+                                        <option value="Billed" selected="@(currentStatus == "Billed")">Abgerechnet</option>
+                                        <option value="Paid" selected="@(currentStatus == "Paid")">Bezahlt</option>
+                                    }
+                                    else
+                                    {
+                                        @if (currentStatus == "New")
+                                        {
+                                            <option value="Billed">Abgerechnet</option>
+                                        }
+                                        else if (currentStatus == "Billed")
+                                        {
+                                            <option value="Billed" selected>Abgerechnet</option>
+                                        }
+                                    }
+                                </select>
+                                @if (!isAdmin && currentStatus != "New")
+                                {
+                                    <small class="form-text text-muted">Nur Admins können den Status von "Abgerechnet" auf "Bezahlt" setzen.</small>
+                                }
+                            </div>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Kein Abrechnungsstatus verfügbar</p>
+                }
+            </div>
+        </div>
+
+        @if (isAdmin)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Zeitstempel</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="mb-0">
+                        <dt>Erstellt:</dt>
+                        <dd>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <dt>Aktualisiert:</dt>
+                            <dd>@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                        }
+
+                        @if (Model.LexofficeCreatedAt.HasValue)
+                        {
+                            <dt>Lexoffice erstellt:</dt>
+                            <dd>@Model.LexofficeCreatedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.LexofficeQuoteId))
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Lexoffice</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <small>Angebots-ID:</small><br>
+                            <code>@Model.LexofficeQuoteId</code>
+                        </p>
+                        @if (!string.IsNullOrEmpty(Model.LexofficeQuoteLink))
+                        {
+                            <a href="@Model.LexofficeQuoteLink" target="_blank" class="btn btn-success btn-sm w-100 mb-2">
+                                <i class="bi bi-box-arrow-up-right"></i> In Lexoffice öffnen
+                            </a>
+                        }
+                        <form asp-action="SyncWithLexoffice" asp-route-id="@Model.Id" method="post" class="mb-0">
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-arrow-repeat"></i> Mit Lexoffice synchronisieren
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+

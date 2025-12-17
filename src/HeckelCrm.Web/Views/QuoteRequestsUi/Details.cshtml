@@ -1,0 +1,230 @@
+@model QuoteRequestDto
+@{
+    ViewData["Title"] = "Angebotsanfrage Details";
+    var angebote = ViewBag.Angebote as IEnumerable<OfferDto> ?? Enumerable.Empty<OfferDto>();
+    var isAdmin = ViewBag.IsAdmin == true;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-file-earmark-text"></i> Angebotsanfrage Details
+            </h1>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Anfrageinformationen</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Kontakt:</dt>
+                    <dd class="col-sm-8">
+                        <strong>@Model.ContactName</strong>
+                        <br>
+                        <a href="mailto:@Model.ContactEmail">@Model.ContactEmail</a>
+                    </dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        @switch (Model.Status)
+                        {
+                            case "New":
+                                <span class="badge bg-primary">Neu</span>
+                                break;
+                            case "QuoteCreated":
+                                <span class="badge bg-info">Angebot erstellt</span>
+                                break;
+                            case "Rejected":
+                                <span class="badge bg-danger">Abgelehnt</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary">@Model.Status</span>
+                                break;
+                        }
+                    </dd>
+
+                    @if (Model.Status == "QuoteCreated" && Model.SelectedQuoteId.HasValue)
+                    {
+                        <dt class="col-sm-4">Ausgewähltes Angebot:</dt>
+                        <dd class="col-sm-8">
+                            <strong>@Model.SelectedQuoteTitle</strong>
+                            <br>
+                            <a asp-controller="OffersUi" asp-action="Details" asp-route-id="@Model.SelectedQuoteId.Value" class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="bi bi-eye"></i> Angebot anzeigen
+                            </a>
+                        </dd>
+                    }
+
+                    <dt class="col-sm-4">Erstellt:</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <dt class="col-sm-4">Aktualisiert:</dt>
+                        <dd class="col-sm-8">@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Requirements))
+        {
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-chat-text"></i> Anforderungen</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.Requirements</p>
+                </div>
+            </div>
+        }
+
+
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Angebote (@angebote.Count())</h5>
+            </div>
+            <div class="card-body">
+                @if (angebote.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Titel</th>
+                                    <th>Tage</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var angebot in angebote)
+                                {
+                                    <tr>
+                                        <td>@angebot.Title</td>
+                                        <td>
+                                            @if (angebot.Days.HasValue)
+                                            {
+                                                <span class="badge bg-info">@angebot.Days Tage</span>
+                                            }
+                                            else if (angebot.DaysUntilAcceptance.HasValue)
+                                            {
+                                                <span class="badge bg-info">@angebot.DaysUntilAcceptance Tage</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(angebot.LexofficeVoucherStatus))
+                                            {
+                                                @switch (angebot.LexofficeVoucherStatus.ToLower())
+                                                {
+                                                    case "draft":
+                                                        <span class="badge bg-secondary">Entwurf</span>
+                                                        break;
+                                                    case "open":
+                                                        <span class="badge bg-primary">Offen</span>
+                                                        break;
+                                                    case "sent":
+                                                        <span class="badge bg-info">Gesendet</span>
+                                                        break;
+                                                    case "viewed":
+                                                        <span class="badge bg-warning text-dark">Angesehen</span>
+                                                        break;
+                                                    case "accepted":
+                                                        <span class="badge bg-success">Angenommen</span>
+                                                        break;
+                                                    case "declined":
+                                                        <span class="badge bg-danger">Abgelehnt</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@angebot.LexofficeVoucherStatus</span>
+                                                        break;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @switch (angebot.Status)
+                                                {
+                                                    case "Created":
+                                                        <span class="badge bg-primary">Erstellt</span>
+                                                        break;
+                                                    case "Rejected":
+                                                        <span class="badge bg-danger">Abgelehnt</span>
+                                                        break;
+                                                    case "InProgress":
+                                                        <span class="badge bg-warning text-dark">In Bearbeitung</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@angebot.Status</span>
+                                                        break;
+                                                }
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-controller="OffersUi" asp-action="Details" asp-route-id="@angebot.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Noch keine Angebote für diese Anfrage vorhanden.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-person"></i> Kontakt</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>@Model.ContactName</strong></p>
+                <p class="mb-0">
+                    <a href="mailto:@Model.ContactEmail">@Model.ContactEmail</a>
+                </p>
+                <a asp-controller="ContactsUi" asp-action="Details" asp-route-id="@Model.ContactId" class="btn btn-sm btn-outline-primary mt-2 w-100">
+                    <i class="bi bi-eye"></i> Kontakt anzeigen
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Zeitstempel</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Erstellt:</dt>
+                    <dd>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <dt>Aktualisiert:</dt>
+                        <dd>@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+

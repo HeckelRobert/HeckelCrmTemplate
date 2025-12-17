@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Partner einrichten";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-person-badge"></i> Partner einrichten
+                    </h2>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage as string))
+                    {
+                        <div class="alert alert-success">
+                            @ViewBag.SuccessMessage
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+                    {
+                        <div class="alert alert-danger">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+
+                    <p class="text-muted">
+                        Bitte geben Sie Ihre Partner-ID ein. Diese ID wird verwendet, um Ihre Leads und Angebote zu identifizieren.
+                    </p>
+
+                    <form asp-action="Setup" asp-controller="Partner" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <input type="hidden" name="entraIdObjectId" value="@ViewBag.EntraIdObjectId" />
+
+                        <div class="mb-3">
+                            <label for="partnerId" class="form-label">Partner-ID *</label>
+                            <input type="text" 
+                                   class="form-control @(ViewData.ModelState["partnerId"]?.Errors.Count > 0 ? "is-invalid" : "")" 
+                                   id="partnerId" 
+                                   name="partnerId" 
+                                   required 
+                                   placeholder="z.B. PARTNER-001"
+                                   pattern="[A-Za-z0-9-_]+"
+                                   title="Nur Buchstaben, Zahlen, Bindestriche und Unterstriche erlaubt" />
+                            <small class="form-text text-muted">
+                                Die Partner-ID muss eindeutig sein und darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten.
+                            </small>
+                            @if (ViewData.ModelState["partnerId"]?.Errors.Count > 0)
+                            {
+                                <div class="invalid-feedback">
+                                    @ViewData.ModelState["partnerId"]?.Errors[0].ErrorMessage
+                                </div>
+                            }
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">Ihre Informationen:</h6>
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-4">Name:</dt>
+                                    <dd class="col-sm-8">@ViewBag.Name</dd>
+                                    <dt class="col-sm-4">E-Mail:</dt>
+                                    <dd class="col-sm-8">@ViewBag.Email</dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        @if (ViewData.ModelState.ErrorCount > 0)
+                        {
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Partner erstellen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

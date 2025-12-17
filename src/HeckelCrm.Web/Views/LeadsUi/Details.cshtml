@@ -1,0 +1,334 @@
+@model LeadDto
+@{
+    ViewData["Title"] = "Lead Details";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-person"></i> Lead Details
+            </h1>
+            <div class="d-flex gap-2">
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Bearbeiten
+                    </a>
+                    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Möchten Sie diesen Lead wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Löschen
+                        </button>
+                    </form>
+                }
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Kontaktinformationen</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Name:</dt>
+                    <dd class="col-sm-8"><strong>@Model.FirstName @Model.LastName</strong></dd>
+
+                    <dt class="col-sm-4">E-Mail:</dt>
+                    <dd class="col-sm-8">
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </dd>
+
+                    <dt class="col-sm-4">Telefon:</dt>
+                    <dd class="col-sm-8">@(Model.Phone ?? "-")</dd>
+
+                    <dt class="col-sm-4">Unternehmen:</dt>
+                    <dd class="col-sm-8">@(Model.CompanyName ?? "-")</dd>
+
+                    <dt class="col-sm-4">Partner:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.PartnerName))
+                        {
+                            <span class="badge bg-secondary">@Model.PartnerName</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark">@Model.PartnerId</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.BillingStreet) || !string.IsNullOrEmpty(Model.BillingCity))
+        {
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-house"></i> Adresse</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        @if (!string.IsNullOrEmpty(Model.BillingStreet))
+                        {
+                            <dt class="col-sm-4">Straße:</dt>
+                            <dd class="col-sm-8">@Model.BillingStreet</dd>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.BillingZip) || !string.IsNullOrEmpty(Model.BillingCity))
+                        {
+                            <dt class="col-sm-4">PLZ / Ort:</dt>
+                            <dd class="col-sm-8">@(Model.BillingZip ?? "") @(Model.BillingCity ?? "")</dd>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.BillingCountryCode))
+                        {
+                            <dt class="col-sm-4">Land:</dt>
+                            <dd class="col-sm-8">@Model.BillingCountryCode</dd>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.BillingSupplement))
+                        {
+                            <dt class="col-sm-4">Adresszusatz:</dt>
+                            <dd class="col-sm-8">@Model.BillingSupplement</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        }
+
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Status</h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status ändern:</label>
+                                <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                                    <option value="New" selected="@(Model.Status == "New")">Neu</option>
+                                    <option value="InBearbeitung" selected="@(Model.Status == "InBearbeitung")">In Bearbeitung</option>
+                                    <option value="AngebotErstellt" selected="@(Model.Status == "AngebotErstellt")">Angebot erstellt</option>
+                                    <option value="Abgelehnt" selected="@(Model.Status == "Abgelehnt")">Abgelehnt</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                }
+                else
+                {
+                    <dl class="row">
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            @switch (Model.Status)
+                            {
+                                case "New":
+                                    <span class="badge bg-primary">Neu</span>
+                                    break;
+                                case "InBearbeitung":
+                                    <span class="badge bg-warning">In Bearbeitung</span>
+                                    break;
+                                case "AngebotErstellt":
+                                    <span class="badge bg-info">Angebot erstellt</span>
+                                    break;
+                                case "Abgelehnt":
+                                    <span class="badge bg-danger">Abgelehnt</span>
+                                    break;
+                                case "Contacted":
+                                    <span class="badge bg-info">Kontaktiert</span>
+                                    break;
+                                case "Qualified":
+                                    <span class="badge bg-warning">Qualifiziert</span>
+                                    break;
+                                case "Converted":
+                                    <span class="badge bg-success">Konvertiert</span>
+                                    break;
+                                case "Lost":
+                                    <span class="badge bg-danger">Verloren</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-secondary">@Model.Status</span>
+                                    break;
+                            }
+                        </dd>
+                    </dl>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-chat-text"></i> Anforderungen des Kunden</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.Notes</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Einwilligungen & Akzeptanzen</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt class="mb-2">
+                        @if (Model.PrivacyPolicyAccepted)
+                        {
+                            <i class="bi bi-check-circle text-success"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-x-circle text-danger"></i>
+                        }
+                        Datenschutzerklärung
+                    </dt>
+                    <dd class="mb-3">
+                        @if (Model.PrivacyPolicyAccepted)
+                        {
+                            <span class="text-success">Akzeptiert</span>
+                            <br>
+                            <small class="text-muted">Am @Model.PrivacyPolicyAcceptedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Nicht akzeptiert</span>
+                        }
+                    </dd>
+
+                    <dt class="mb-2">
+                        @if (Model.TermsAccepted)
+                        {
+                            <i class="bi bi-check-circle text-success"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-x-circle text-danger"></i>
+                        }
+                        AGB
+                    </dt>
+                    <dd class="mb-3">
+                        @if (Model.TermsAccepted)
+                        {
+                            <span class="text-success">Akzeptiert</span>
+                            <br>
+                            <small class="text-muted">Am @Model.TermsAcceptedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Nicht akzeptiert</span>
+                        }
+                    </dd>
+
+                    <dt class="mb-2">
+                        @if (Model.DataProcessingAccepted)
+                        {
+                            <i class="bi bi-check-circle text-success"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-x-circle text-danger"></i>
+                        }
+                        AVV (Auftragsverarbeitungsvertrag)
+                    </dt>
+                    <dd class="mb-0">
+                        @if (Model.DataProcessingAccepted)
+                        {
+                            <span class="text-success">Akzeptiert</span>
+                            <br>
+                            <small class="text-muted">Am @Model.DataProcessingAcceptedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Nicht akzeptiert</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Zeitstempel</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Erstellt:</dt>
+                    <dd>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <dt>Aktualisiert:</dt>
+                        <dd>@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @if (ViewBag.IsAdmin == true)
+        {
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Lexoffice</h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.LexofficeContactId))
+                    {
+                        <dl class="mb-0">
+                            <dt>Status:</dt>
+                            <dd>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> In Lexoffice gespeichert
+                                </span>
+                            </dd>
+                            <dt class="mt-2">Customer ID:</dt>
+                            <dd>
+                                <code>@Model.LexofficeContactId</code>
+                            </dd>
+                        </dl>
+                    }
+                    else
+                    {
+                        <dl class="mb-0">
+                            <dt>Status:</dt>
+                            <dd>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-triangle"></i> Noch nicht in Lexoffice gespeichert
+                                </span>
+                            </dd>
+                        </dl>
+                        <form asp-action="CreateLexofficeContact" asp-route-id="@Model.Id" method="post" class="mt-3">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Kontakt in Lexoffice anlegen
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Angebote</h5>
+            </div>
+            <div class="card-body">
+                <a asp-controller="OffersUi" asp-action="Index" asp-route-leadId="@Model.Id" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-eye"></i> Angebote anzeigen
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

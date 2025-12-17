@@ -1,0 +1,130 @@
+@model IEnumerable<LeadDto>
+@{
+    ViewData["Title"] = "Leads";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-people"></i> Leads
+            </h1>
+            @if (!string.IsNullOrEmpty(ViewBag.PartnerId as string))
+            {
+                <div>
+                    <span class="badge bg-info">Partner: @ViewBag.PartnerId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="leadsTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>E-Mail</th>
+                                <th>Telefon</th>
+                                <th>Unternehmen</th>
+                                <th>Partner</th>
+                                <th>Status</th>
+                                <th>Erstellt</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var lead in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@lead.FirstName @lead.LastName</strong>
+                                        </td>
+                                        <td>
+                                            <a href="mailto:@lead.Email">@lead.Email</a>
+                                        </td>
+                                        <td>@(lead.Phone ?? "-")</td>
+                                        <td>@(lead.CompanyName ?? "-")</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(lead.PartnerName))
+                                            {
+                                                <span class="badge bg-secondary">@lead.PartnerName</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-dark">@lead.PartnerId</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @switch (lead.Status)
+                                            {
+                                                case "New":
+                                                    <span class="badge bg-primary">Neu</span>
+                                                    break;
+                                                case "Contacted":
+                                                    <span class="badge bg-info">Kontaktiert</span>
+                                                    break;
+                                                case "Qualified":
+                                                    <span class="badge bg-warning">Qualifiziert</span>
+                                                    break;
+                                                case "Converted":
+                                                    <span class="badge bg-success">Konvertiert</span>
+                                                    break;
+                                                case "Lost":
+                                                    <span class="badge bg-danger">Verloren</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@lead.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <small>@lead.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@lead.Id" class="btn btn-sm btn-outline-primary" title="Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2">Keine Leads gefunden</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Simple client-side search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('leadsTable');
+            if (table) {
+                // Add search input if needed
+                console.log('Leads table loaded');
+            }
+        });
+    </script>
+}
+

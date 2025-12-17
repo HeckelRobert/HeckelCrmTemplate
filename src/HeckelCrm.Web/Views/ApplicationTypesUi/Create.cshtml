@@ -1,0 +1,71 @@
+@model CreateApplicationTypeDto
+@{
+    ViewData["Title"] = "Anwendungstyp erstellen";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-plus-circle"></i> Anwendungstyp erstellen
+            </h1>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+            </a>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Grundinformationen</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Name *</label>
+                        <input asp-for="Name" class="form-control" required />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">Beschreibung</label>
+                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Hinweise</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Der Name wird im Titel des Angebots verwendet</li>
+                        <li>Format: "{Anwendungstyp} - {Name der ersten Leistung}"</li>
+                        <li>Die Beschreibung ist optional</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-circle"></i> Anwendungstyp erstellen
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-x-circle"></i> Abbrechen
+            </a>
+        </div>
+    </div>
+</form>
+

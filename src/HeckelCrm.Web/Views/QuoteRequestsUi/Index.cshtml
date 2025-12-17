@@ -1,0 +1,148 @@
+@model IEnumerable<QuoteRequestDto>
+@{
+    ViewData["Title"] = "Angebotsanfragen";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-person-raised-hand"></i> Angebotsanfragen
+            </h1>
+            @if (ViewBag.ContactId != null)
+            {
+                <div>
+                    <span class="badge bg-info">Kontakt gefiltert</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <!-- Filter Section -->
+                <form method="get" asp-action="Index" class="mb-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Status</label>
+                            <select name="status" id="status" class="form-select" onchange="this.form.submit()">
+                                <option value="">Alle Status</option>
+                                <option value="New" selected="@(ViewBag.Status?.ToString()?.Equals("New", StringComparison.OrdinalIgnoreCase) == true)">Neu</option>
+                                <option value="QuoteCreated" selected="@(ViewBag.Status?.ToString()?.Equals("QuoteCreated", StringComparison.OrdinalIgnoreCase) == true)">Angebot erstellt</option>
+                                <option value="Rejected" selected="@(ViewBag.Status?.ToString()?.Equals("Rejected", StringComparison.OrdinalIgnoreCase) == true)">Abgelehnt</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            @if (ViewBag.Status != null)
+                            {
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Filter zurücksetzen
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    @if (ViewBag.ContactId != null)
+                    {
+                        <input type="hidden" name="contactId" value="@ViewBag.ContactId" />
+                    }
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="quoteRequestsTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Kontakt</th>
+                                <th>E-Mail</th>
+                                <th>Anforderungen</th>
+                                <th>Status</th>
+                                <th>Angebote</th>
+                                <th>Erstellt</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var request in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@request.ContactName</strong>
+                                        </td>
+                                        <td>
+                                            <a href="mailto:@request.ContactEmail">@request.ContactEmail</a>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(request.Requirements))
+                                            {
+                                                <small>@(request.Requirements.Length > 50 ? request.Requirements.Substring(0, 50) + "..." : request.Requirements)</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @switch (request.Status)
+                                            {
+                                                case "New":
+                                                    <span class="badge bg-primary">Neu</span>
+                                                    break;
+                                                case "QuoteCreated":
+                                                    <span class="badge bg-info">Angebot erstellt</span>
+                                                    break;
+                                                case "Rejected":
+                                                    <span class="badge bg-danger">Abgelehnt</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@request.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">@request.AngeboteCount</span>
+                                        </td>
+                                        <td>
+                                            <small>@request.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@request.Id" class="btn btn-sm btn-outline-primary" title="Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2">Keine Angebotsanfragen gefunden</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('quoteRequestsTable');
+            if (table) {
+                console.log('Quote requests table loaded');
+            }
+        });
+    </script>
+}
+

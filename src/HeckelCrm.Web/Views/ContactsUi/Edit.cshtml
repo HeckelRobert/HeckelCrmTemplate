@@ -1,0 +1,180 @@
+@model CreateContactDto
+@{
+    ViewData["Title"] = "Kontakt bearbeiten";
+    var contactId = ViewBag.ContactId as Guid?;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-pencil"></i> Kontakt bearbeiten
+            </h1>
+            <a asp-action="Details" asp-route-id="@contactId" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück zu Details
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">
+                    <i class="bi bi-person"></i> Kontakt bearbeiten
+                </h2>
+            </div>
+            <div class="card-body">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle"></i> Bitte korrigieren Sie die Fehler im Formular.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="Edit" asp-route-id="@contactId" method="post" id="editContactForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <!-- Persönliche Daten -->
+                    <div class="mb-4">
+                        <h4 class="mb-3"><i class="bi bi-person"></i> Persönliche Daten</h4>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Salutation" class="form-label">Anrede</label>
+                                <select asp-for="Salutation" class="form-select">
+                                    <option value="">Keine Anrede</option>
+                                    <option value="Herr">Herr</option>
+                                    <option value="Frau">Frau</option>
+                                    <option value="Divers">Divers</option>
+                                </select>
+                                <span asp-validation-for="Salutation" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="FirstName" class="form-label">Vorname *</label>
+                                <input asp-for="FirstName" class="form-control" required />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="LastName" class="form-label">Nachname *</label>
+                                <input asp-for="LastName" class="form-control" required />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">E-Mail *</label>
+                                <input type="email" asp-for="Email" class="form-control" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Phone" class="form-label">Telefon</label>
+                                <input type="tel" asp-for="Phone" class="form-control" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="CompanyName" class="form-label">Firmenname</label>
+                                <input asp-for="CompanyName" class="form-control" />
+                                <span asp-validation-for="CompanyName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div class="mb-4">
+                        <h4 class="mb-3"><i class="bi bi-house"></i> Rechnungsadresse</h4>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label asp-for="BillingStreet" class="form-label">Straße und Hausnummer</label>
+                                <input asp-for="BillingStreet" class="form-control" />
+                                <span asp-validation-for="BillingStreet" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="BillingZip" class="form-label">PLZ</label>
+                                <input asp-for="BillingZip" class="form-control" />
+                                <span asp-validation-for="BillingZip" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="BillingCity" class="form-label">Stadt</label>
+                                <input asp-for="BillingCity" class="form-control" />
+                                <span asp-validation-for="BillingCity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="BillingCountryCode" class="form-label">Land</label>
+                                <select asp-for="BillingCountryCode" class="form-select">
+                                    <option value="">Bitte wählen</option>
+                                    <option value="DE">Deutschland</option>
+                                    <option value="AT">Österreich</option>
+                                    <option value="CH">Schweiz</option>
+                                </select>
+                                <span asp-validation-for="BillingCountryCode" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="BillingSupplement" class="form-label">Adresszusatz</label>
+                            <input asp-for="BillingSupplement" class="form-control" />
+                            <span asp-validation-for="BillingSupplement" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Anforderungen -->
+                    <div class="mb-4">
+                        <h4 class="mb-3"><i class="bi bi-chat-text"></i> Anforderungen</h4>
+                        <div class="mb-3">
+                            <label asp-for="Requirements" class="form-label">Anforderungen / Notizen</label>
+                            <textarea asp-for="Requirements" class="form-control" rows="5"></textarea>
+                            <span asp-validation-for="Requirements" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Partner -->
+                    <div class="mb-4">
+                        <h4 class="mb-3"><i class="bi bi-people"></i> Partner</h4>
+                        <div class="mb-3">
+                            <label asp-for="PartnerId" class="form-label">Partner-ID</label>
+                            <input asp-for="PartnerId" class="form-control" />
+                            <small class="form-text text-muted">Optional: Partner-ID zuweisen</small>
+                            <span asp-validation-for="PartnerId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Details" asp-route-id="@contactId" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Abbrechen
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Speichern
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
+}
+

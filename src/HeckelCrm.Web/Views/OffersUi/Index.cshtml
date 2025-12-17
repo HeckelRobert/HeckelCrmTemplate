@@ -1,0 +1,398 @@
+@model IEnumerable<OfferDto>
+@inject Microsoft.AspNetCore.Authorization.IAuthorizationService AuthorizationService
+@{
+    ViewData["Title"] = "Angebote";
+    var isAdminResult = await AuthorizationService.AuthorizeAsync(User, null, "Admin");
+    var isAdmin = isAdminResult.Succeeded;
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-file-earmark-text"></i> Angebote
+            </h1>
+            <div class="d-flex gap-2 align-items-center">
+                @if (!string.IsNullOrEmpty(ViewBag.PartnerId as string))
+                {
+                    <span class="badge bg-info">Partner: @ViewBag.PartnerId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                }
+                @if (ViewBag.ContactId != null)
+                {
+                    <span class="badge bg-info">Kontakt-ID: @ViewBag.ContactId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                }
+                @if (ViewBag.QuoteRequestId != null)
+                {
+                    <span class="badge bg-info">Anfrage-ID: @ViewBag.QuoteRequestId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                }
+                @if (isAdmin)
+                {
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Angebot erstellen
+                    </a>
+                }
+                <form asp-action="BatchSyncWithLexoffice" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-info">
+                        <i class="bi bi-arrow-repeat"></i> Angebote synchronisieren
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <!-- Filter Section -->
+                <form method="get" asp-action="Index" class="mb-3">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="lexofficeStatus" class="form-label">Angebotsstatus</label>
+                            <select name="lexofficeStatus" id="lexofficeStatus" class="form-select" onchange="this.form.submit()">
+                                <option value="">Alle Status</option>
+                                <option value="draft" selected="@(ViewBag.LexofficeStatus?.ToString()?.Equals("draft", StringComparison.OrdinalIgnoreCase) == true)">Entwurf</option>
+                                <option value="open" selected="@(ViewBag.LexofficeStatus?.ToString()?.Equals("open", StringComparison.OrdinalIgnoreCase) == true)">Offen</option>
+                                <option value="sent" selected="@(ViewBag.LexofficeStatus?.ToString()?.Equals("sent", StringComparison.OrdinalIgnoreCase) == true)">Gesendet</option>
+                                <option value="viewed" selected="@(ViewBag.LexofficeStatus?.ToString()?.Equals("viewed", StringComparison.OrdinalIgnoreCase) == true)">Angesehen</option>
+                                <option value="accepted" selected="@(ViewBag.LexofficeStatus?.ToString()?.Equals("accepted", StringComparison.OrdinalIgnoreCase) == true)">Angenommen</option>
+                                <option value="declined" selected="@(ViewBag.LexofficeStatus?.ToString()?.Equals("declined", StringComparison.OrdinalIgnoreCase) == true)">Abgelehnt</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="billingStatus" class="form-label">Abrechnungsstatus</label>
+                            <select name="billingStatus" id="billingStatus" class="form-select" onchange="this.form.submit()">
+                                <option value="">Alle Status</option>
+                                <option value="New" selected="@(ViewBag.BillingStatus?.ToString()?.Equals("New", StringComparison.OrdinalIgnoreCase) == true)">Neu</option>
+                                <option value="Billed" selected="@(ViewBag.BillingStatus?.ToString()?.Equals("Billed", StringComparison.OrdinalIgnoreCase) == true)">Abgerechnet</option>
+                                <option value="Paid" selected="@(ViewBag.BillingStatus?.ToString()?.Equals("Paid", StringComparison.OrdinalIgnoreCase) == true)">Bezahlt</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            @if (ViewBag.LexofficeStatus != null || ViewBag.BillingStatus != null)
+                            {
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Filter zurücksetzen
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    @if (ViewBag.PartnerId != null)
+                    {
+                        <input type="hidden" name="partnerId" value="@ViewBag.PartnerId" />
+                    }
+                    @if (ViewBag.ContactId != null)
+                    {
+                        <input type="hidden" name="contactId" value="@ViewBag.ContactId" />
+                    }
+                    @if (ViewBag.QuoteRequestId != null)
+                    {
+                        <input type="hidden" name="quoteRequestId" value="@ViewBag.QuoteRequestId" />
+                    }
+                </form>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="AngeboteTable">
+                        <thead class="table-dark">
+                            <tr>
+                                @if (isAdmin)
+                                {
+                                    <th>Titel</th>
+                                    <th>Kontakt</th>
+                                    <th>Angebotsstatus</th>
+                                    <th>Abrechnungsstatus</th>
+                                    <th>Gültig bis</th>
+                                    <th>Tage</th>
+                                    <th>Erstellt</th>
+                                    <th>Aktionen</th>
+                                }
+                                else
+                                {
+                                    <th>Nr.</th>
+                                    <th>Kontakt</th>
+                                    <th>Angebotsstatus</th>
+                                    <th>Abrechnungsstatus</th>
+                                    <th>Tage</th>
+                                    <th>Aktionen</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var Offer in Model)
+                                {
+                                    <tr>
+                                        @if (isAdmin)
+                                        {
+                                            <td>
+                                                <strong>@Offer.Title</strong>
+                                            </td>
+                                            <td>
+                                                <a asp-controller="ContactsUi" asp-action="Details" asp-route-id="@Offer.ContactId">
+                                                    <div>@Offer.ContactName</div>
+                                                    <small class="text-muted">@Offer.ContactEmail</small>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(Offer.LexofficeVoucherStatus))
+                                                {
+                                                    @switch (Offer.LexofficeVoucherStatus.ToLower())
+                                                    {
+                                                        case "draft":
+                                                            <span class="badge bg-secondary">Entwurf</span>
+                                                            break;
+                                                        case "open":
+                                                            <span class="badge bg-primary">Offen</span>
+                                                            break;
+                                                        case "sent":
+                                                            <span class="badge bg-info">Gesendet</span>
+                                                            break;
+                                                        case "viewed":
+                                                            <span class="badge bg-warning text-dark">Angesehen</span>
+                                                            break;
+                                                        case "accepted":
+                                                            <span class="badge bg-success">Angenommen</span>
+                                                            break;
+                                                        case "declined":
+                                                            <span class="badge bg-danger">Abgelehnt</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@Offer.LexofficeVoucherStatus</span>
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    @switch (Offer.Status)
+                                                    {
+                                                        case "Created":
+                                                            <span class="badge bg-primary">Erstellt</span>
+                                                            break;
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Abgelehnt</span>
+                                                            break;
+                                                        case "InProgress":
+                                                            <span class="badge bg-warning text-dark">In Bearbeitung</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@Offer.Status</span>
+                                                            break;
+                                                    }
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (Offer.BillingStatus)
+                                                {
+                                                    case "New":
+                                                        <span class="badge bg-secondary">Neu</span>
+                                                        break;
+                                                    case "Billed":
+                                                        <span class="badge bg-warning text-dark">Abgerechnet</span>
+                                                        break;
+                                                    case "Paid":
+                                                        <span class="badge bg-success">Bezahlt</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@Offer.BillingStatus</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (Offer.ValidUntil.HasValue)
+                                                {
+                                                    <small>@Offer.ValidUntil.Value.ToString("dd.MM.yyyy")</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (Offer.Days.HasValue)
+                                                {
+                                                    <span class="badge bg-info">@Offer.Days Tage</span>
+                                                }
+                                                else if (Offer.DaysUntilAcceptance.HasValue)
+                                                {
+                                                    <span class="badge bg-info">@Offer.DaysUntilAcceptance Tage</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <small>@Offer.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@Offer.Id" class="btn btn-sm btn-outline-primary" title="Details">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    @if (!string.IsNullOrEmpty(Offer.LexofficeQuoteLink))
+                                                    {
+                                                        <a href="@Offer.LexofficeQuoteLink" target="_blank" class="btn btn-sm btn-outline-success" title="Lexoffice öffnen">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(Offer.LexofficeQuoteNumber))
+                                                {
+                                                    <span class="badge bg-secondary">@Offer.LexofficeQuoteNumber</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-controller="ContactsUi" asp-action="Details" asp-route-id="@Offer.ContactId">
+                                                    <div>@Offer.ContactName</div>
+                                                    <small class="text-muted">@Offer.ContactEmail</small>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(Offer.LexofficeVoucherStatus))
+                                                {
+                                                    @switch (Offer.LexofficeVoucherStatus.ToLower())
+                                                    {
+                                                        case "draft":
+                                                            <span class="badge bg-secondary">Entwurf</span>
+                                                            break;
+                                                        case "open":
+                                                            <span class="badge bg-primary">Offen</span>
+                                                            break;
+                                                        case "sent":
+                                                            <span class="badge bg-info">Gesendet</span>
+                                                            break;
+                                                        case "viewed":
+                                                            <span class="badge bg-warning text-dark">Angesehen</span>
+                                                            break;
+                                                        case "accepted":
+                                                            <span class="badge bg-success">Angenommen</span>
+                                                            break;
+                                                        case "declined":
+                                                            <span class="badge bg-danger">Abgelehnt</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@Offer.LexofficeVoucherStatus</span>
+                                                            break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    @switch (Offer.Status)
+                                                    {
+                                                        case "Created":
+                                                            <span class="badge bg-primary">Erstellt</span>
+                                                            break;
+                                                        case "Rejected":
+                                                            <span class="badge bg-danger">Abgelehnt</span>
+                                                            break;
+                                                        case "InProgress":
+                                                            <span class="badge bg-warning text-dark">In Bearbeitung</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge bg-secondary">@Offer.Status</span>
+                                                            break;
+                                                    }
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (Offer.BillingStatus)
+                                                {
+                                                    case "New":
+                                                        <span class="badge bg-secondary">Neu</span>
+                                                        break;
+                                                    case "Billed":
+                                                        <span class="badge bg-warning text-dark">Abgerechnet</span>
+                                                        break;
+                                                    case "Paid":
+                                                        <span class="badge bg-success">Bezahlt</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary">@Offer.BillingStatus</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (Offer.Days.HasValue)
+                                                {
+                                                    <span class="badge bg-info">@Offer.Days Tage</span>
+                                                }
+                                                else if (Offer.DaysUntilAcceptance.HasValue)
+                                                {
+                                                    <span class="badge bg-info">@Offer.DaysUntilAcceptance Tage</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@Offer.Id" class="btn btn-sm btn-outline-primary" title="Details">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <form asp-action="SyncWithLexoffice" method="post" class="d-inline" asp-route-id="@Offer.Id">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-info" title="Mit Lexoffice synchronisieren">
+                                                            <i class="bi bi-arrow-repeat"></i>
+                                                        </button>
+                                                    </form>
+                                                    @if (!string.IsNullOrEmpty(Offer.LexofficeQuoteLink))
+                                                    {
+                                                        <a href="@Offer.LexofficeQuoteLink" target="_blank" class="btn btn-sm btn-outline-success" title="Lexoffice öffnen">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="@(isAdmin ? "8" : "6")" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2">Keine Angebote gefunden</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('AngeboteTable');
+            if (table) {
+                console.log('Angebote table loaded');
+            }
+        });
+    </script>
+}
+

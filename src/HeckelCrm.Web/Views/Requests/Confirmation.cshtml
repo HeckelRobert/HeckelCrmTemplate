@@ -1,0 +1,52 @@
+@model ContactDto
+@{
+    ViewData["Title"] = "Anfrage erfolgreich";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-check-circle"></i> Anfrage erfolgreich
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <h4>Vielen Dank für Ihre Anfrage!</h4>
+                        <p>Ihre Anfrage wurde erfolgreich übermittelt. Wir werden uns in Kürze bei Ihnen melden.</p>
+                    </div>
+
+                    <h5>Ihre Daten:</h5>
+                    <dl class="row">
+                        <dt class="col-sm-3">Name:</dt>
+                        <dd class="col-sm-9">@Model.FirstName @Model.LastName</dd>
+
+                        <dt class="col-sm-3">E-Mail:</dt>
+                        <dd class="col-sm-9">@Model.Email</dd>
+
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <dt class="col-sm-3">Telefon:</dt>
+                            <dd class="col-sm-9">@Model.Phone</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.CompanyName))
+                        {
+                            <dt class="col-sm-3">Firma:</dt>
+                            <dd class="col-sm-9">@Model.CompanyName</dd>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.PartnerName))
+                        {
+                            <dt class="col-sm-3">Ihr Ansprechpartner:</dt>
+                            <dd class="col-sm-9">@Model.PartnerName</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

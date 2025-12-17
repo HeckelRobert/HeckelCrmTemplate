@@ -1,0 +1,94 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: heckel-crm-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${DB_PASSWORD:-YourStrongPassword123!}
+      - MSSQL_PID=Express
+    volumes:
+      - db-data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backup
+    ports:
+      - "1433:1433"
+    restart: unless-stopped
+    # Lightweight TCP healthcheck (sqlcmd not available in base image)
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/1433'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  api:
+    image: heckel-crm-api:latest
+    build:
+      context: ./src
+      dockerfile: HeckelCrm.Api/Dockerfile
+    container_name: heckel-crm-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=db;Database=${DB_NAME:-HeckelCrm};User Id=sa;Password=${DB_PASSWORD:-YourStrongPassword123!};TrustServerCertificate=True;Encrypt=True
+      - Lexoffice__ApiKey=${LEXOFFICE_API_KEY}
+      - Lexoffice__BaseUrl=${LEXOFFICE_BASE_URL:-https://api.lexware.io/v1}
+      - AzureAd__ClientId=${AZURE_AD_CLIENT_ID}
+      - AzureAd__TenantId=${AZURE_AD_TENANT_ID}
+      - AzureAd__ClientSecret=${AZURE_AD_CLIENT_SECRET}
+      - AzureAd__Instance=${AZURE_AD_INSTANCE:-https://login.microsoftonline.com/}
+      - AzureAd__Audience=${AZURE_AD_AUDIENCE}
+      - AzureAd__PartnerGroupId=${AZURE_AD_PARTNER_GROUP_ID}
+      - AzureAd__AdminGroupId=${AZURE_AD_ADMIN_GROUP_ID}
+    ports:
+      - "5000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/8080'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    image: heckel-crm-web:latest
+    build:
+      context: ./src
+      dockerfile: HeckelCrm.Web/Dockerfile
+    container_name: heckel-crm-web
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - Api__BaseUrl=${API_BASE_URL:-http://api:8080}
+      - Api__Audience=${API_AUDIENCE}
+      - Api__Scope=${API_SCOPE:-api.access}
+      - AzureAd__ClientId=${AZURE_AD_CLIENT_ID}
+      - AzureAd__TenantId=${AZURE_AD_TENANT_ID}
+      - AzureAd__ClientSecret=${AZURE_AD_CLIENT_SECRET}
+      - AzureAd__Instance=${AZURE_AD_INSTANCE:-https://login.microsoftonline.com/}
+      - AzureAd__CallbackPath=${AZURE_AD_CALLBACK_PATH:-/signin-oidc}
+      - AzureAd__PartnerGroupId=${AZURE_AD_PARTNER_GROUP_ID}
+      - AzureAd__AdminGroupId=${AZURE_AD_ADMIN_GROUP_ID}
+    ports:
+      # Expose only on 8080 for Nginx reverse proxy on host 80/443
+      - "8080:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'cat < /dev/null > /dev/tcp/localhost/8080'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  default:
+    name: heckel-crm-network
+

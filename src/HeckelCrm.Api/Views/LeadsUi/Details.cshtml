@@ -1,0 +1,164 @@
+@model LeadDto
+@{
+    ViewData["Title"] = "Lead Details";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-person"></i> Lead Details
+            </h1>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Zurück zur Übersicht
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Kontaktinformationen</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Name:</dt>
+                    <dd class="col-sm-8"><strong>@Model.FirstName @Model.LastName</strong></dd>
+
+                    <dt class="col-sm-4">E-Mail:</dt>
+                    <dd class="col-sm-8">
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </dd>
+
+                    <dt class="col-sm-4">Telefon:</dt>
+                    <dd class="col-sm-8">@(Model.Phone ?? "-")</dd>
+
+                    <dt class="col-sm-4">Unternehmen:</dt>
+                    <dd class="col-sm-8">@(Model.CompanyName ?? "-")</dd>
+
+                    <dt class="col-sm-4">Partner:</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.PartnerName))
+                        {
+                            <span class="badge bg-secondary">@Model.PartnerName</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-dark">@Model.PartnerId</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Status</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        @switch (Model.Status)
+                        {
+                            case "New":
+                                <span class="badge bg-primary">Neu</span>
+                                break;
+                            case "Contacted":
+                                <span class="badge bg-info">Kontaktiert</span>
+                                break;
+                            case "Qualified":
+                                <span class="badge bg-warning">Qualifiziert</span>
+                                break;
+                            case "Converted":
+                                <span class="badge bg-success">Konvertiert</span>
+                                break;
+                            case "Lost":
+                                <span class="badge bg-danger">Verloren</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary">@Model.Status</span>
+                                break;
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-sticky"></i> Notizen</h5>
+                </div>
+                <div class="card-body">
+                    <p>@Model.Notes</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Datenschutz</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    <i class="bi bi-check-circle text-success"></i>
+                    Datenschutzerklärung akzeptiert
+                </p>
+                <small class="text-muted">
+                    Am @Model.PrivacyPolicyAcceptedAt.ToString("dd.MM.yyyy HH:mm")
+                </small>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Zeitstempel</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Erstellt:</dt>
+                    <dd>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <dt>Aktualisiert:</dt>
+                        <dd>@Model.UpdatedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.LexofficeContactId))
+        {
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Lexoffice</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">
+                        <small>Kontakt-ID:</small><br>
+                        <code>@Model.LexofficeContactId</code>
+                    </p>
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Angebote</h5>
+            </div>
+            <div class="card-body">
+                <a asp-controller="AngeboteUi" asp-action="Index" asp-route-leadId="@Model.Id" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-eye"></i> Angebote anzeigen
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,148 @@
+@model UpdateAdminSettingsDto
+@{
+    ViewData["Title"] = "Admin-Einstellungen";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>
+            <i class="bi bi-gear"></i> Admin-Einstellungen
+        </h1>
+        <p class="text-muted">Konfigurieren Sie die Standardwerte für Angebote.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form asp-action="Index" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label asp-for="DefaultUnitPrice" class="form-label">
+                            Standard Tagessatz (€) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DefaultUnitPrice" class="form-control" type="number" step="0.01" min="0" required />
+                        <span asp-validation-for="DefaultUnitPrice" class="text-danger"></span>
+                        <small class="form-text text-muted">Der Standardpreis pro Tag für neue Angebote.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DefaultTaxRatePercentage" class="form-label">
+                            Standard MwSt. (%) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DefaultTaxRatePercentage" class="form-control" type="number" min="0" max="100" required />
+                        <span asp-validation-for="DefaultTaxRatePercentage" class="text-danger"></span>
+                        <small class="form-text text-muted">Der Standard-Mehrwertsteuersatz für neue Angebote.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DefaultValidUntilDays" class="form-label">
+                            Standard Gültigkeitsdauer (Tage) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DefaultValidUntilDays" class="form-control" type="number" min="1" required />
+                        <span asp-validation-for="DefaultValidUntilDays" class="text-danger"></span>
+                        <small class="form-text text-muted">Die Anzahl der Tage, für die neue Angebote standardmäßig gültig sind.</small>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <h5 class="mb-3">Lexoffice Integration</h5>
+                    
+                    <div class="mb-3">
+                        <label asp-for="LexofficeApiKey" class="form-label">
+                            Lexoffice API Key
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="LexofficeApiKey" class="form-control" type="password" id="lexofficeApiKey" placeholder="Leer lassen, um nicht zu ändern" />
+                            <button class="btn btn-outline-secondary" type="button" id="toggleLexofficeKey" onclick="togglePasswordVisibility('lexofficeApiKey', 'toggleLexofficeKey')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="LexofficeApiKey" class="text-danger"></span>
+                        @if (ViewBag.LexofficeApiKeyExists == true)
+                        {
+                            <div class="form-text text-success">
+                                <i class="bi bi-check-circle"></i> Ein API Key ist gesetzt. Lassen Sie das Feld leer, um den aktuellen Wert beizubehalten.
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="form-text text-muted">
+                                Der API-Schlüssel für die Lexoffice-Integration. Optional - wenn nicht gesetzt, wird die Lexoffice-Integration deaktiviert.
+                            </div>
+                        }
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <h5 class="mb-3">Verweise auf Rechtsdokumente</h5>
+                    
+                    <div class="mb-3">
+                        <label asp-for="PrivacyPolicyUrl" class="form-label">
+                            Datenschutzerklärung URL
+                        </label>
+                        <input asp-for="PrivacyPolicyUrl" class="form-control" type="url" placeholder="https://www.example.de/datenschutz" />
+                        <span asp-validation-for="PrivacyPolicyUrl" class="text-danger"></span>
+                        <small class="form-text text-muted">URL zur Datenschutzerklärung, die im Footer angezeigt wird.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="TermsUrl" class="form-label">
+                            AGB URL
+                        </label>
+                        <input asp-for="TermsUrl" class="form-control" type="url" placeholder="https://www.example.de/agb" />
+                        <span asp-validation-for="TermsUrl" class="text-danger"></span>
+                        <small class="form-text text-muted">URL zu den Allgemeinen Geschäftsbedingungen, die im Footer angezeigt wird.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="DataProcessingUrl" class="form-label">
+                            Auftragsdatenverarbeitung URL (AVV)
+                        </label>
+                        <input asp-for="DataProcessingUrl" class="form-control" type="url" placeholder="https://www.example.de/datenverarbeitung" />
+                        <span asp-validation-for="DataProcessingUrl" class="text-danger"></span>
+                        <small class="form-text text-muted">URL zur Auftragsdatenverarbeitung, die in Formularen (z.B. Angebotsanfrage) verwendet wird.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ImprintUrl" class="form-label">
+                            Impressum URL
+                        </label>
+                        <input asp-for="ImprintUrl" class="form-control" type="url" placeholder="https://www.example.de/impressum" />
+                        <span asp-validation-for="ImprintUrl" class="text-danger"></span>
+                        <small class="form-text text-muted">URL zum Impressum, die im Footer angezeigt wird.</small>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Speichern
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePasswordVisibility(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
+}
+

@@ -1,0 +1,128 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Leads</h6>
+                        <h3 class="card-title mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a asp-controller="LeadsUi" asp-action="Index" class="text-white text-decoration-none">
+                    Alle Leads anzeigen <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Angebote</h6>
+                        <h3 class="card-title mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-file-earmark-text fs-1 opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top-0">
+                <a asp-controller="AngeboteUi" asp-action="Index" class="text-white text-decoration-none">
+                    Alle Angebote anzeigen <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Akzeptierte Angebote</h6>
+                        <h3 class="card-title mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3 mb-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-subtitle mb-2">Ausstehende Angebote</h6>
+                        <h3 class="card-title mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-clock fs-1 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Heckel CRM</h5>
+            </div>
+            <div class="card-body">
+                <p>Verwenden Sie die Navigation, um Leads und Angebote zu verwalten.</p>
+                <ul>
+                    <li><strong>Leads:</strong> Verwalten Sie alle Leads, die über Ihre Website eingehen</li>
+                    <li><strong>Angebote:</strong> Erstellen und verwalten Sie Angebote (optional mit Lexoffice-Integration)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load statistics via API
+        async function loadStatistics() {
+            try {
+                const [leadsResponse, angeboteResponse] = await Promise.all([
+                    fetch('/api/leads'),
+                    fetch('/api/angebote')
+                ]);
+
+                if (leadsResponse.ok) {
+                    const leads = await leadsResponse.json();
+                    document.querySelector('.bg-primary .card-title').textContent = leads.length;
+                }
+
+                if (angeboteResponse.ok) {
+                    const angebote = await angeboteResponse.json();
+                    document.querySelector('.bg-success .card-title').textContent = angebote.length;
+                    
+                    const accepted = angebote.filter(a => a.status === 'Accepted').length;
+                    const pending = angebote.filter(a => a.status === 'Sent' || a.status === 'Draft').length;
+                    
+                    document.querySelector('.bg-info .card-title').textContent = accepted;
+                    document.querySelector('.bg-warning .card-title').textContent = pending;
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        loadStatistics();
+    </script>
+}
+

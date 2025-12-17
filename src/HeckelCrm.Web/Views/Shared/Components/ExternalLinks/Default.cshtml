@@ -1,0 +1,23 @@
+@model HeckelCrm.Web.Options.ExternalLinksOptions
+
+@{
+    var links = new List<(string Url, string Text)>();
+    if (!string.IsNullOrEmpty(Model.PrivacyPolicyUrl))
+        links.Add((Model.PrivacyPolicyUrl, "Datenschutzerklärung"));
+    if (!string.IsNullOrEmpty(Model.TermsUrl))
+        links.Add((Model.TermsUrl, "AGB"));
+    // DataProcessingUrl wird nicht im Footer angezeigt, sondern nur in Formularen verwendet
+}
+
+@if (links.Any())
+{
+    @for (int i = 0; i < links.Count; i++)
+    {
+        <a href="@links[i].Url" target="_blank" class="text-muted text-decoration-none @(i > 0 ? "ms-3" : "me-3")">@links[i].Text</a>
+        @if (i < links.Count - 1)
+        {
+            <span class="text-muted">|</span>
+        }
+    }
+}
+

@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "Abgemeldet";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Heckel CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="container d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+        <div class="text-center">
+            <div class="mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            </div>
+            <h2>Sie wurden erfolgreich abgemeldet</h2>
+            <p class="text-muted mb-4">Sie können sich jetzt mit einem anderen Benutzer anmelden.</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="@Url.Action("Login", "Account")" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Mit anderem Benutzer anmelden
+                </a>
+                <button type="button" class="btn btn-outline-secondary" onclick="tryCloseWindow()">
+                    <i class="bi bi-x-circle"></i> Fenster schließen
+                </button>
+            </div>
+            <p class="mt-4">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> Hinweis: Falls das Fenster nicht automatisch geschlossen werden kann, 
+                    schließen Sie es bitte manuell oder klicken Sie auf "Mit anderem Benutzer anmelden".
+                </small>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function tryCloseWindow() {
+            // Try to close the window
+            if (window.opener) {
+                // If opened by another window, close this one
+                window.close();
+            } else {
+                // If not opened by script, redirect to login
+                window.location.href = '@Url.Action("Login", "Account")';
+            }
+        }
+
+        // Try to close the window automatically after a short delay (only if opened by script)
+        setTimeout(function() {
+            if (window.opener) {
+                tryCloseWindow();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,171 @@
+@model IEnumerable<OfferDto>
+@{
+    ViewData["Title"] = "Angebote";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-file-earmark-text"></i> Angebote
+            </h1>
+            @if (!string.IsNullOrEmpty(ViewBag.PartnerId as string))
+            {
+                <div>
+                    <span class="badge bg-info">Partner: @ViewBag.PartnerId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                </div>
+            }
+            @if (ViewBag.ContactId != null)
+            {
+                <div>
+                    <span class="badge bg-info">Kontakt-ID: @ViewBag.ContactId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                </div>
+            }
+            @if (ViewBag.QuoteRequestId != null)
+            {
+                <div>
+                    <span class="badge bg-info">Anfrage-ID: @ViewBag.QuoteRequestId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="angeboteTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Titel</th>
+                                <th>Kunde</th>
+                                <th>Betrag</th>
+                                <th>Status</th>
+                                <th>Gültig bis</th>
+                                <th>Tage bis Akzeptanz</th>
+                                <th>Erstellt</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var angebot in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@angebot.Title</strong>
+                                            @if (!string.IsNullOrEmpty(angebot.Description))
+                                            {
+                                                <br><small class="text-muted">@(angebot.Description.Length > 50 ? angebot.Description.Substring(0, 50) + "..." : angebot.Description)</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div>@angebot.ContactName</div>
+                                            <small class="text-muted">@angebot.ContactEmail</small>
+                                        </td>
+                                        <td>
+                                            <strong>@angebot.Amount.ToString("N2") @angebot.Currency</strong>
+                                        </td>
+                                        <td>
+                                            @switch (angebot.Status)
+                                            {
+                                                case "Created":
+                                                    <span class="badge bg-primary">Erstellt</span>
+                                                    break;
+                                                case "Rejected":
+                                                    <span class="badge bg-danger">Abgelehnt</span>
+                                                    break;
+                                                case "InProgress":
+                                                    <span class="badge bg-warning text-dark">In Bearbeitung</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@angebot.Status</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (angebot.ValidUntil.HasValue)
+                                            {
+                                                <small>@angebot.ValidUntil.Value.ToString("dd.MM.yyyy")</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (angebot.DaysUntilAcceptance.HasValue)
+                                            {
+                                                @if (angebot.Status == "InProgress")
+                                                {
+                                                    <span class="badge bg-success">@angebot.DaysUntilAcceptance Tage</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-info">@angebot.DaysUntilAcceptance Tage</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <small>@angebot.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Details" asp-route-id="@angebot.Id" class="btn btn-sm btn-outline-primary" title="Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @if (!string.IsNullOrEmpty(angebot.LexofficeQuoteLink))
+                                                {
+                                                    <a href="@angebot.LexofficeQuoteLink" target="_blank" class="btn btn-sm btn-outline-success" title="Lexoffice öffnen">
+                                                        <i class="bi bi-box-arrow-up-right"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2">Keine Angebote gefunden</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('angeboteTable');
+            if (table) {
+                console.log('Angebote table loaded');
+            }
+        });
+    </script>
+}
+

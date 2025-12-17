@@ -1,0 +1,146 @@
+@model IEnumerable<ContactDto>
+@{
+    ViewData["Title"] = "Kontakte";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="bi bi-people"></i> Kontakte
+            </h1>
+            @if (!string.IsNullOrEmpty(ViewBag.PartnerId as string))
+            {
+                <div>
+                    <span class="badge bg-info">Partner: @ViewBag.PartnerId</span>
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Filter entfernen
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="contactsTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Firma</th>
+                                <th>E-Mail</th>
+                                <th>Telefon</th>
+                                <th>Adresse</th>
+                                <th>Partner</th>
+                                <th>Abrechnungsstatus</th>
+                                <th>Erstellt</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var contact in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@contact.FirstName @contact.LastName</strong>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(contact.CompanyName))
+                                            {
+                                                <span>@contact.CompanyName</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="mailto:@contact.Email">@contact.Email</a>
+                                        </td>
+                                        <td>@(contact.Phone ?? "-")</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(contact.BillingCity))
+                                            {
+                                                <small>@(contact.BillingZip ?? "") @contact.BillingCity</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(contact.PartnerName))
+                                            {
+                                                <span class="badge bg-info">@contact.PartnerName</span>
+                                            }
+                                            else if (!string.IsNullOrEmpty(contact.PartnerId))
+                                            {
+                                                <span class="badge bg-secondary">@contact.PartnerId</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @switch (contact.BillingStatus)
+                                            {
+                                                case "New":
+                                                    <span class="badge bg-primary">Neu</span>
+                                                    break;
+                                                case "Billed":
+                                                    <span class="badge bg-warning text-dark">Abgerechnet</span>
+                                                    break;
+                                                case "Paid":
+                                                    <span class="badge bg-success">Bezahlt</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@contact.BillingStatus</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            <small>@contact.CreatedAt.ToString("dd.MM.yyyy")</small>
+                                        </td>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@contact.Id" class="btn btn-sm btn-outline-primary" title="Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">
+                                        <i class="bi bi-inbox fs-1"></i>
+                                        <p class="mt-2">Keine Kontakte gefunden</p>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('contactsTable');
+            if (table) {
+                console.log('Contacts table loaded');
+            }
+        });
+    </script>
+}
+
