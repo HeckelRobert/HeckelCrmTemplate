@@ -220,6 +220,10 @@ The project includes Dockerfiles and docker-compose configuration for containeri
    AZURE_AD_TENANT_ID=your-tenant-id
    AZURE_AD_CLIENT_SECRET=your-client-secret
    AZURE_AD_INSTANCE=https://login.microsoftonline.com/
+   AZURE_AD_PARTNER_GROUP_ID=your-partner-group-object-id
+   AZURE_AD_ADMIN_GROUP_ID=your-admin-group-object-id
+   AZURE_AD_AUDIENCE=api://your-client-id
+   API_AUDIENCE=api://your-client-id
    LEXOFFICE_BASE_URL=https://api.lexware.io/v1
    ```
 
@@ -245,6 +249,10 @@ The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) 
    - `AZURE_AD_TENANT_ID`: Entra-ID tenant ID
    - `AZURE_AD_CLIENT_SECRET`: Entra-ID client secret
    - `AZURE_AD_INSTANCE`: Entra-ID instance URL (default: `https://login.microsoftonline.com/`)
+   - `AZURE_AD_PARTNER_GROUP_ID`: Object ID of the Entra ID security group for partners
+   - `AZURE_AD_ADMIN_GROUP_ID`: Object ID of the Entra ID security group for admins
+   - `AZURE_AD_AUDIENCE`: API audience (e.g. `api://your-client-id`)
+   - `API_AUDIENCE`: Same audience value, used by the Web UI to call the API
    - `LEXOFFICE_BASE_URL`: Lexoffice API base URL (optional)
 
 
