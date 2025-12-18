@@ -22,9 +22,6 @@ services:
 
   api:
     image: heckel-crm-api:latest
-    build:
-      context: ./src
-      dockerfile: HeckelCrm.Api/Dockerfile
     container_name: heckel-crm-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
@@ -54,9 +51,6 @@ services:
 
   web:
     image: heckel-crm-web:latest
-    build:
-      context: ./src
-      dockerfile: HeckelCrm.Web/Dockerfile
     container_name: heckel-crm-web
     environment:
       - ASPNETCORE_ENVIRONMENT=Production

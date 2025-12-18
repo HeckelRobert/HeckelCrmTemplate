@@ -89,9 +89,9 @@ jobs:
           rm deploy.tar.gz
           
           # Load Docker images
-          docker load -i deploy/heckel-crm-api.tar
-          docker load -i deploy/heckel-crm-web.tar
-          rm -f deploy/heckel-crm-api.tar deploy/heckel-crm-web.tar
+          docker load -i heckel-crm-api.tar
+          docker load -i heckel-crm-web.tar
+          rm -f heckel-crm-api.tar heckel-crm-web.tar
           
           # Tag images for docker-compose
           docker tag heckel-crm-api:latest heckel-crm-api:latest || true
