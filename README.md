@@ -84,8 +84,13 @@ Update `appsettings.json` with your database connection string:
    - Add users as **Members** (not just Owners) to the respective groups
    - Copy the **Object ID** of each group (you'll need this for configuration)
 5. Configure API permissions
-   - Certificates & seccrets: Create new client secret
-   - Expose an API with the scope name: api.access
+   - **Certificates & secrets**: Create a new client secret (used by the backend for token validation and On‑Behalf‑Of flow)
+   - **Expose an API**:
+     - Add an Application ID URI (e.g. `api://your-client-id`)
+     - Add a scope with the name `api.access` (this is what the Web UI requests when calling the API)
+   - **API permissions** (for this app registration):
+     - Under your own API (e.g. `Heckel_CRM_DEMO`): add the **Delegated** permission `api.access` and grant admin consent
+     - Under **Microsoft Graph**: at minimum add `openid`, `profile`, `email`, and `offline_access`; `User.Read` is optional and currently not required by the app
 6. Update `appsettings.json`:
 
 ```json
