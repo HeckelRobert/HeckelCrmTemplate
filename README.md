@@ -84,6 +84,8 @@ Update `appsettings.json` with your database connection string:
    - Add users as **Members** (not just Owners) to the respective groups
    - Copy the **Object ID** of each group (you'll need this for configuration)
 5. Configure API permissions
+   - Certificates & seccrets: Create new client secret
+   - Expose an API with the scope name: api.access
 6. Update `appsettings.json`:
 
 ```json
