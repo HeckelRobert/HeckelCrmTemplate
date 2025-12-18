@@ -268,6 +268,7 @@ If you choose to host on a Debian-based server with nginx, here are the specific
 2. **Install Docker:**
    ```bash
    curl -fsSL https://get.docker.com | sh
+   apt install docker-compose
    apt install docker-compose-plugin -y
    ```
 
