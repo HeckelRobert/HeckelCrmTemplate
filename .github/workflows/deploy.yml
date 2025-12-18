@@ -107,6 +107,10 @@ jobs:
           export AZURE_AD_TENANT_ID="${{ secrets.AZURE_AD_TENANT_ID }}"
           export AZURE_AD_CLIENT_SECRET="${{ secrets.AZURE_AD_CLIENT_SECRET }}"
           export AZURE_AD_INSTANCE="${{ secrets.AZURE_AD_INSTANCE || 'https://login.microsoftonline.com/' }}"
+          export AZURE_AD_PARTNER_GROUP_ID="${{ secrets.AZURE_AD_PARTNER_GROUP_ID }}"
+          export AZURE_AD_ADMIN_GROUP_ID="${{ secrets.AZURE_AD_ADMIN_GROUP_ID }}"
+          export AZURE_AD_AUDIENCE="${{ secrets.AZURE_AD_AUDIENCE }}"
+          export API_AUDIENCE="${{ secrets.API_AUDIENCE }}"
           export LEXOFFICE_BASE_URL="${{ secrets.LEXOFFICE_BASE_URL || 'https://api.lexware.io/v1' }}"              
           
           # Start containers with environment variables (use pre-built images, don't rebuild)
