@@ -104,13 +104,19 @@ Update `appsettings.json` with your database connection string:
     "PartnerGroupId": "your-partner-group-id",
     "AdminGroupId": "your-admin-group-id"
   },
+  "AzureAd": {
+    "Audience": "api://your-client-id"
+  },
   "Api": {
     "Audience": "api://your-client-id"
   }
 }
 ```
 
-**Important**: The `CallbackPath` in `appsettings.json` must match the Redirect URI configured in Entra ID. The default is `/signin-oidc`.
+**Important**: 
+- The `CallbackPath` in `appsettings.json` must match the Redirect URI configured in Entra ID. The default is `/signin-oidc`.
+- `AzureAd:Audience` is **required** - this is the audience that the API accepts when validating JWT tokens.
+- `Api:Audience` is **optional** - if not set, it automatically uses `AzureAd:Audience`. Both must have the same value (e.g. `api://your-client-id`).
 
 ### 4. Configure Lexoffice API (Optional)
 
@@ -228,11 +234,15 @@ The project includes Dockerfiles and docker-compose configuration for containeri
    AZURE_AD_PARTNER_GROUP_ID=your-partner-group-object-id
    AZURE_AD_ADMIN_GROUP_ID=your-admin-group-object-id
    AZURE_AD_AUDIENCE=api://your-client-id
-   API_AUDIENCE=api://your-client-id
+   # API_AUDIENCE is optional - if not set, it automatically uses AZURE_AD_AUDIENCE
+   # API_AUDIENCE=api://your-client-id
    LEXOFFICE_BASE_URL=https://api.lexware.io/v1
    ```
 
-   **Note:** For production deployment, use GitHub Secrets (see CI/CD section below). External Links and Lexoffice API Key are configured via the Admin Settings UI after deployment.
+   **Note:** 
+   - `AZURE_AD_AUDIENCE` is **required** - this is the audience that the API accepts when validating JWT tokens.
+   - `API_AUDIENCE` is **optional** - if not set, it automatically uses `AZURE_AD_AUDIENCE`. Both must have the same value (e.g. `api://your-client-id`).
+   - For production deployment, use GitHub Secrets (see CI/CD section below). External Links and Lexoffice API Key are configured via the Admin Settings UI after deployment.
 
 3. **Database migrations:**
    Migrations are automatically applied when the API container starts. No manual migration step is required.
@@ -256,8 +266,8 @@ The project includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) 
    - `AZURE_AD_INSTANCE`: Entra-ID instance URL (default: `https://login.microsoftonline.com/`)
    - `AZURE_AD_PARTNER_GROUP_ID`: Object ID of the Entra ID security group for partners
    - `AZURE_AD_ADMIN_GROUP_ID`: Object ID of the Entra ID security group for admins
-   - `AZURE_AD_AUDIENCE`: API audience (e.g. `api://your-client-id`)
-   - `API_AUDIENCE`: Same audience value, used by the Web UI to call the API
+   - `AZURE_AD_AUDIENCE`: API audience (e.g. `api://your-client-id`) - **Required**. This is the audience that the API accepts when validating JWT tokens.
+   - `API_AUDIENCE`: (Optional) Same audience value, used by the Web UI to request access tokens for the API. If not set, it automatically uses `AZURE_AD_AUDIENCE`. Both must have the same value (e.g. `api://your-client-id`).
    - `LEXOFFICE_BASE_URL`: Lexoffice API base URL (optional)
 
 

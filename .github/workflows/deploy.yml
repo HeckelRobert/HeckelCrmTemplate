@@ -110,7 +110,8 @@ jobs:
           export AZURE_AD_PARTNER_GROUP_ID="${{ secrets.AZURE_AD_PARTNER_GROUP_ID }}"
           export AZURE_AD_ADMIN_GROUP_ID="${{ secrets.AZURE_AD_ADMIN_GROUP_ID }}"
           export AZURE_AD_AUDIENCE="${{ secrets.AZURE_AD_AUDIENCE }}"
-          export API_AUDIENCE="${{ secrets.API_AUDIENCE }}"
+          # API_AUDIENCE should be the same as AZURE_AD_AUDIENCE (fallback if not explicitly set)
+          export API_AUDIENCE="${{ secrets.API_AUDIENCE || secrets.AZURE_AD_AUDIENCE }}"
           export LEXOFFICE_BASE_URL="${{ secrets.LEXOFFICE_BASE_URL || 'https://api.lexware.io/v1' }}"              
           
           # Start containers with environment variables (use pre-built images, don't rebuild)
